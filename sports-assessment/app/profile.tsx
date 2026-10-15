@@ -1,4 +1,15 @@
-import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Pressable,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useState } from 'react';
 
@@ -7,6 +18,8 @@ export default function ProfileScreen() {
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [weight, setWeight] = useState('');
+
+  const { width } = useWindowDimensions();
 
   const handleContinue = () => {
     router.push({
@@ -21,82 +34,160 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Your Profile</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Age"
-        keyboardType="numeric"
-        value={age}
-        onChangeText={setAge}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Gender"
-        value={gender}
-        onChangeText={setGender}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Weight (kg)"
-        keyboardType="numeric"
-        value={weight}
-        onChangeText={setWeight}
-      />
-
-      <Pressable
-        style={styles.button}
-        onPress={handleContinue}
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Text style={styles.buttonText}>Continue</Text>
-      </Pressable>
-    </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View
+            style={[
+              styles.container,
+              { paddingHorizontal: Math.max(20, width * 0.06) },
+            ]}
+          >
+            <Text
+              style={[
+                styles.title,
+                { fontSize: Math.min(width * 0.08, 30) },
+              ]}
+            >
+              Your Profile
+            </Text>
+
+            <Text style={styles.subtitle}>
+              Tell us a little about yourself
+            </Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Name"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              returnKeyType="next"
+              accessibilityLabel="Name"
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Age"
+              keyboardType="number-pad"
+              value={age}
+              onChangeText={setAge}
+              returnKeyType="next"
+              accessibilityLabel="Age"
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Gender"
+              value={gender}
+              onChangeText={setGender}
+              returnKeyType="next"
+              accessibilityLabel="Gender"
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Weight (kg)"
+              keyboardType="decimal-pad"
+              value={weight}
+              onChangeText={setWeight}
+              returnKeyType="done"
+              accessibilityLabel="Weight in kilograms"
+            />
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={handleContinue}
+              accessibilityRole="button"
+            >
+              <Text style={styles.buttonText}>Continue</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    padding: 25,
+    backgroundColor: '#F5F7FA',
+  },
+
+  keyboardView: {
+    flex: 1,
+  },
+
+  scrollContent: {
+    flexGrow: 1,
+  },
+
+  container: {
+    flexGrow: 1,
     justifyContent: 'center',
+    paddingVertical: 28,
+    width: '100%',
+    alignSelf: 'center',
+    maxWidth: 500,
   },
 
   title: {
-    fontSize: 30,
     fontWeight: 'bold',
-    marginBottom: 40,
+    color: '#14213D',
     textAlign: 'center',
+    marginBottom: 10,
+  },
+
+  subtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 30,
   },
 
   input: {
+    width: '100%',
+    minHeight: 52,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
+    borderColor: '#D1D5DB',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    marginBottom: 16,
     fontSize: 16,
+    backgroundColor: '#FFFFFF',
+    color: '#14213D',
   },
 
   button: {
-    backgroundColor: '#000',
-    padding: 15,
-    borderRadius: 10,
+    width: '100%',
+    minHeight: 52,
+    backgroundColor: '#14213D',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 15,
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+
+  buttonPressed: {
+    opacity: 0.8,
   },
 
   buttonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },

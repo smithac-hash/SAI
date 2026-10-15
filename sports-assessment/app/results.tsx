@@ -1,123 +1,245 @@
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 export default function ResultsScreen() {
+  const { width } = useWindowDimensions();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Your Results</Text>
-
-      <Text style={styles.scoreLabel}>Fitness Score</Text>
-
-      <Text style={styles.score}>78 / 100</Text>
-
-      <View style={styles.resultCard}>
-        <Text style={styles.resultTitle}>Strength</Text>
-        <Text style={styles.resultScore}>72 / 100</Text>
-      </View>
-
-      <View style={styles.resultCard}>
-        <Text style={styles.resultTitle}>Agility</Text>
-        <Text style={styles.resultScore}>81 / 100</Text>
-      </View>
-
-      <View style={styles.resultCard}>
-        <Text style={styles.resultTitle}>Endurance</Text>
-        <Text style={styles.resultScore}>76 / 100</Text>
-      </View>
-
-      <View style={styles.resultCard}>
-        <Text style={styles.resultTitle}>Explosive Power</Text>
-        <Text style={styles.resultScore}>83 / 100</Text>
-      </View>
-
-      <Text style={styles.recommendationTitle}>
-        Recommended Sports
-      </Text>
-
-      <Text style={styles.sport}>🏸 Badminton</Text>
-      <Text style={styles.sport}>🏃 Athletics</Text>
-      <Text style={styles.sport}>⚽ Football</Text>
-
-      <Pressable
-        style={styles.button}
-        onPress={() => router.replace('/')}
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.buttonText}>Back to Home</Text>
-      </Pressable>
-    </View>
+        <View style={styles.container}>
+          <Text
+            style={[
+              styles.title,
+              { fontSize: Math.min(width * 0.08, 30) },
+            ]}
+          >
+            Your Results
+          </Text>
+
+          <View style={styles.scoreCard}>
+            <Text style={styles.scoreLabel}>Fitness Score</Text>
+            <Text style={styles.score}>78 / 100</Text>
+            <Text style={styles.scoreHint}>
+              Your overall assessment summary
+            </Text>
+          </View>
+
+          <Text style={styles.sectionTitle}>Performance Breakdown</Text>
+
+          <View style={styles.resultCard}>
+            <Text style={styles.resultTitle}>Strength</Text>
+            <Text style={styles.resultScore}>72 / 100</Text>
+          </View>
+
+          <View style={styles.resultCard}>
+            <Text style={styles.resultTitle}>Agility</Text>
+            <Text style={styles.resultScore}>81 / 100</Text>
+          </View>
+
+          <View style={styles.resultCard}>
+            <Text style={styles.resultTitle}>Endurance</Text>
+            <Text style={styles.resultScore}>76 / 100</Text>
+          </View>
+
+          <View style={styles.resultCard}>
+            <Text style={styles.resultTitle}>Explosive Power</Text>
+            <Text style={styles.resultScore}>83 / 100</Text>
+          </View>
+
+          <Text style={styles.recommendationTitle}>
+            Recommended Sports
+          </Text>
+
+          <View style={styles.sportCard}>
+            <Text style={styles.sport}>🏸  Badminton</Text>
+          </View>
+
+          <View style={styles.sportCard}>
+            <Text style={styles.sport}>🏃  Athletics</Text>
+          </View>
+
+          <View style={styles.sportCard}>
+            <Text style={styles.sport}>⚽  Football</Text>
+          </View>
+
+          <Text style={styles.disclaimer}>
+            These sample scores and sports suggestions are illustrative,
+            not validated talent assessments.
+          </Text>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              { width: Math.min(width * 0.9, 400) },
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() => router.replace('/')}
+            accessibilityRole="button"
+          >
+            <Text style={styles.buttonText}>Back to Home</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F7FA',
+  },
+
+  scrollView: {
+    flex: 1,
+  },
+
+  content: {
+    flexGrow: 1,
+  },
+
+  container: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+    paddingHorizontal: '5%',
+    paddingTop: 16,
+    paddingBottom: 32,
   },
 
   title: {
-    fontSize: 30,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 30,
-    marginBottom: 25,
+    color: '#14213D',
+    marginBottom: 20,
+  },
+
+  scoreCard: {
+    width: '100%',
+    backgroundColor: '#14213D',
+    borderRadius: 18,
+    padding: 22,
+    alignItems: 'center',
+    marginBottom: 26,
   },
 
   scoreLabel: {
     fontSize: 16,
+    color: '#E2E8F0',
     textAlign: 'center',
-    color: '#666',
   },
 
   score: {
-    fontSize: 42,
+    fontSize: 40,
     fontWeight: 'bold',
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 25,
+    marginVertical: 8,
+  },
+
+  scoreHint: {
+    fontSize: 13,
+    color: '#CBD5E1',
+    textAlign: 'center',
+  },
+
+  sectionTitle: {
+    fontSize: 19,
+    fontWeight: 'bold',
+    color: '#14213D',
+    marginBottom: 12,
   },
 
   resultCard: {
+    width: '100%',
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 15,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 10,
   },
 
   resultTitle: {
+    flexShrink: 1,
     fontSize: 16,
     fontWeight: '600',
+    color: '#334155',
   },
 
   resultScore: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#14213D',
   },
 
   recommendationTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginTop: 25,
+    color: '#14213D',
+    marginTop: 20,
+    marginBottom: 12,
+  },
+
+  sportCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
 
   sport: {
-    fontSize: 17,
+    fontSize: 16,
+    color: '#334155',
+  },
+
+  disclaimer: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 18,
+    marginTop: 12,
     marginBottom: 8,
   },
 
   button: {
-    backgroundColor: '#000',
-    padding: 15,
-    borderRadius: 10,
+    alignSelf: 'center',
+    backgroundColor: '#14213D',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 20,
+    justifyContent: 'center',
+    marginTop: 12,
+    minHeight: 52,
+  },
+
+  buttonPressed: {
+    opacity: 0.8,
   },
 
   buttonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
