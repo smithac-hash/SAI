@@ -1,3 +1,4 @@
+
 import {
   StyleSheet,
   Text,
@@ -13,38 +14,40 @@ export default function AssessmentScreen() {
   const { name } = useLocalSearchParams<{ name?: string }>();
   const { width } = useWindowDimensions();
 
+  const athleteName = Array.isArray(name) ? name[0] : name || 'Athlete';
+
   const tests = [
     {
       icon: '📏',
       title: 'Height',
       description: 'Measure your height',
-      route: null,
+      route: '/height' as const,
     },
     {
       icon: '🏋️',
       title: 'Squats',
       description: 'Test lower-body strength',
-      route: '/squat',
+      route: '/squat' as const,
     },
     {
       icon: '💪',
       title: 'Push-ups',
       description: 'Test upper-body strength',
-      route: null,
+      route: '/pushups' as const,
     },
     {
       icon: '🦘',
       title: 'Vertical Jump',
       description: 'Test explosive power',
-      route: null,
+      route: '/vertical-jump' as const,
     },
     {
       icon: '🏃',
       title: 'Agility',
       description: 'Test speed and agility',
-      route: null,
+      route: '/agility' as const,
     },
-  ] as const;
+  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -69,7 +72,7 @@ export default function AssessmentScreen() {
           </Text>
 
           <Text style={styles.welcome}>
-            Welcome, {Array.isArray(name) ? name[0] : name || 'Athlete'}!
+            Welcome, {athleteName}!
           </Text>
 
           <Text style={styles.subtitle}>
@@ -83,11 +86,7 @@ export default function AssessmentScreen() {
                 styles.card,
                 pressed && styles.cardPressed,
               ]}
-              onPress={() => {
-                if (test.route) {
-                  router.push(test.route);
-                }
-              }}
+              onPress={() => router.push(test.route)}
               accessibilityRole="button"
               accessibilityLabel={`${test.title}: ${test.description}`}
             >
@@ -95,8 +94,12 @@ export default function AssessmentScreen() {
 
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>{test.title}</Text>
-                <Text style={styles.cardText}>{test.description}</Text>
+                <Text style={styles.cardText}>
+                  {test.description}
+                </Text>
               </View>
+
+              <Text style={styles.arrow}>›</Text>
             </Pressable>
           ))}
 
@@ -199,6 +202,12 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginTop: 4,
     flexShrink: 1,
+  },
+
+  arrow: {
+    fontSize: 28,
+    color: '#64748B',
+    marginLeft: 8,
   },
 
   button: {
