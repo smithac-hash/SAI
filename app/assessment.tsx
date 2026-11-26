@@ -7,6 +7,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -14,7 +15,9 @@ export default function AssessmentScreen() {
   const { name } = useLocalSearchParams<{ name?: string }>();
   const { width } = useWindowDimensions();
 
-  const athleteName = Array.isArray(name) ? name[0] : name || 'Athlete';
+  const athleteName = Array.isArray(name)
+    ? name[0]
+    : name || 'Athlete';
 
   const tests = [
     {
@@ -40,6 +43,12 @@ export default function AssessmentScreen() {
       title: 'Vertical Jump',
       description: 'Test explosive power',
       route: '/verticaljump' as const,
+    },
+    {
+      icon: '🧘',
+      title: 'Plank',
+      description: 'Test core strength and endurance',
+      route: '/plank' as const,
     },
     {
       icon: '🏃',
@@ -93,7 +102,10 @@ export default function AssessmentScreen() {
               <Text style={styles.icon}>{test.icon}</Text>
 
               <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{test.title}</Text>
+                <Text style={styles.cardTitle}>
+                  {test.title}
+                </Text>
+
                 <Text style={styles.cardText}>
                   {test.description}
                 </Text>
@@ -111,18 +123,27 @@ export default function AssessmentScreen() {
             onPress={() => router.push('/results')}
             accessibilityRole="button"
           >
-            <Text style={styles.buttonText}>View Results</Text>
+            <Text style={styles.buttonText}>
+              View Results
+            </Text>
           </Pressable>
+
           <Pressable
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#CBD5E1' },
+              {
+                backgroundColor: '#FFFFFF',
+                borderWidth: 1,
+                borderColor: '#CBD5E1',
+              },
               pressed && styles.buttonPressed,
             ]}
             onPress={() => router.push('/history')}
             accessibilityRole="button"
           >
-            <Text style={[styles.buttonText, { color: '#14213D' }]}>Assessment History</Text>
+            <Text style={[styles.buttonText, { color: '#14213D' }]}>
+              Assessment History
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
