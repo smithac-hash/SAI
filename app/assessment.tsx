@@ -24,37 +24,37 @@ export default function AssessmentScreen() {
       icon: '📏',
       title: 'Height',
       description: 'Measure your height',
-      route: '/height' as const,
+      route: '/height',
     },
     {
       icon: '🏋️',
       title: 'Squats',
       description: 'Test lower-body strength',
-      route: '/squat' as const,
+      route: '/squat',
     },
     {
       icon: '💪',
       title: 'Push-ups',
       description: 'Test upper-body strength',
-      route: '/pushups' as const,
+      route: '/pushups',
     },
     {
       icon: '🦘',
       title: 'Vertical Jump',
       description: 'Test explosive power',
-      route: '/verticaljump' as const,
+      route: '/verticaljump',
     },
     {
       icon: '🧘',
       title: 'Plank',
       description: 'Test core strength and endurance',
-      route: '/plank' as const,
+      route: '/plank',
     },
     {
       icon: '🏃',
       title: 'Agility',
       description: 'Test speed and agility',
-      route: '/agility' as const,
+      route: '/agility',
     },
   ];
 
@@ -95,7 +95,7 @@ export default function AssessmentScreen() {
                 styles.card,
                 pressed && styles.cardPressed,
               ]}
-              onPress={() => router.push(test.route)}
+              onPress={() => router.push(test.route as any)}
               accessibilityRole="button"
               accessibilityLabel={`${test.title}: ${test.description}`}
             >
@@ -123,9 +123,7 @@ export default function AssessmentScreen() {
             onPress={() => router.push('/results')}
             accessibilityRole="button"
           >
-            <Text style={styles.buttonText}>
-              View Results
-            </Text>
+            <Text style={styles.buttonText}>View Results</Text>
           </Pressable>
 
           <Pressable

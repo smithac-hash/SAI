@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -176,8 +175,8 @@ export default function PlankScreen() {
       unit: 'seconds',
       details: {
         holdDurationSeconds: duration,
-        finalBodyAngle: bodyAngleRef.current,
-        finalKneeAngle: kneeAngleRef.current,
+        finalBodyAngle: bodyAngleRef.current ?? 'Not detected',
+        finalKneeAngle: kneeAngleRef.current ?? 'Not detected',
         measurement: 'MediaPipe Pose camera-based estimate',
         postureCheck: 'Shoulder-hip-ankle and hip-knee-ankle alignment',
       },

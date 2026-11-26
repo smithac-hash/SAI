@@ -172,8 +172,8 @@ export default function PushupsScreen() {
       details: {
         repetitions: repCountRef.current,
         durationSeconds: duration,
-        finalElbowAngle: elbowAngleRef.current,
-        finalBodyAngle: bodyAngleRef.current,
+        finalElbowAngle: elbowAngleRef.current ?? 'Not detected',
+        finalBodyAngle: bodyAngleRef.current ?? 'Not detected',
         measurement: 'MediaPipe Pose camera-based estimate',
         countingMethod:
           'Elbow angle movement from top position to bottom position and back to top',
