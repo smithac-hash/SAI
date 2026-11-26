@@ -51,6 +51,16 @@ function escapeHtml(value: string) {
   });
 }
 
+function formatDetailValue(value: string | number) {
+  if (typeof value === 'number') {
+    return Number.isInteger(value)
+      ? String(value)
+      : value.toFixed(1);
+  }
+
+  return value;
+}
+
 export default function ResultsScreen() {
   const [profile, setProfile] = useState<Athlete | null>(null);
   const [items, setItems] = useState<TestResult[]>([]);
@@ -272,27 +282,67 @@ export default function ResultsScreen() {
             </Text>
           </View>
         ) : (
-          items.map(item => (
-            <View style={s.card} key={item.id}>
-              <View style={s.row}>
-                <Text style={s.label}>{item.test}</Text>
-                <Text style={s.value}>
-                  {item.value} {item.unit}
-                </Text>
-              </View>
+          items.map(item => {
+            const isWallSit = item.test.toLowerCase() === 'wall sit';
 
-              <Text style={s.muted}>
-                {new Date(item.date).toLocaleString()}
-              </Text>
+            const wallSitDetails = isWallSit
+              ? [
+                  {
+                    label: 'Knee Angle',
+                    value: item.details?.finalKneeAngle,
+                    unit: '°',
+                  },
+                  {
+                    label: 'Torso Alignment',
+                    value: item.details?.finalTorsoDeviation,
+                    unit: '°',
+                  },
+                ].filter(
+                  detail => detail.value !== undefined
+                )
+              : [];
 
-              {item.details &&
-                Object.entries(item.details).map(([k, v]) => (
-                  <Text style={s.detail} key={k}>
-                    {k}: {v}
+            return (
+              <View style={s.card} key={item.id}>
+                <View style={s.row}>
+                  <Text style={s.label}>{item.test}</Text>
+                  <Text style={s.value}>
+                    {item.value} {item.unit}
                   </Text>
-                ))}
-            </View>
-          ))
+                </View>
+
+                <Text style={s.muted}>
+                  {new Date(item.date).toLocaleString()}
+                </Text>
+
+                {isWallSit ? (
+                  <View style={s.wallSitDetails}>
+                    {wallSitDetails.map(detail => (
+                      <View
+                        style={s.wallSitDetailRow}
+                        key={detail.label}
+                      >
+                        <Text style={s.wallSitDetailLabel}>
+                          {detail.label}
+                        </Text>
+                        <Text style={s.wallSitDetailValue}>
+                          {formatDetailValue(detail.value!)}
+                          {detail.unit}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  item.details &&
+                  Object.entries(item.details).map(([k, v]) => (
+                    <Text style={s.detail} key={k}>
+                      {k}: {v}
+                    </Text>
+                  ))
+                )}
+              </View>
+            );
+          })
         )}
 
         <Pressable
@@ -462,6 +512,28 @@ const s = StyleSheet.create({
     fontSize: 13,
     color: '#475569',
     marginTop: 5,
+  },
+  wallSitDetails: {
+    marginTop: 14,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    gap: 12,
+  },
+  wallSitDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  wallSitDetailLabel: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  wallSitDetailValue: {
+    fontSize: 15,
+    color: '#14213D',
+    fontWeight: '800',
   },
   empty: {
     backgroundColor: '#FFF',
