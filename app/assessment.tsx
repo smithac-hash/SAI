@@ -33,6 +33,18 @@ export default function AssessmentScreen() {
       route: '/squat',
     },
     {
+      icon: '🤸',
+      title: 'Sit-ups',
+      description: 'Test abdominal strength and endurance',
+      route: '/situps',
+    },
+    {
+      icon: '🧍',
+      title: 'Single-Leg Balance',
+      description: 'Test balance and postural stability',
+      route: '/singlelegbalance',
+    },
+    {
       icon: '💪',
       title: 'Push-ups',
       description: 'Test upper-body strength',
