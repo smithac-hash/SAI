@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,35 +13,95 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from 'expo-router';
 import { apiRequest, getAuthUser, AuthUser } from '../../lib/api';
+
+type ChatPerson = {
+  _id: string;
+  name?: string;
+  role?: string;
+};
 
 type ChatMessage = {
   _id: string;
   text: string;
   createdAt: string;
-  sender: { _id: string; name?: string; role?: string } | string;
-  receiver: { _id: string; name?: string; role?: string } | string;
+  sender: ChatPerson | string;
+  receiver: ChatPerson | string;
 };
 
-function getId(value: ChatMessage['sender'] | ChatMessage['receiver']) {
-  return typeof value === 'string' ? value : value?._id;
+function getId(
+  person: ChatMessage['sender'] | ChatMessage['receiver']
+): string {
+  return typeof person === 'string' ? person : person?._id || '';
+}
+
+function getPersonName(
+  person: ChatMessage['sender'] | ChatMessage['receiver'],
+  fallback: string
+): string {
+  if (typeof person === 'object' && person?.name) {
+    return person.name;
+  }
+  return fallback;
+}
+
+function getPersonRole(
+  person: ChatMessage['sender'] | ChatMessage['receiver']
+): string {
+  if (typeof person !== 'object' || !person?.role) {
+    return '';
+  }
+
+  return person.role.charAt(0).toUpperCase() + person.role.slice(1);
+}
+
+function formatTime(dateString: string): string {
+  const date = new Date(dateString);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 export default function ChatScreen() {
-  const params = useLocalSearchParams<{ userId: string; name?: string }>();
-  const userId = Array.isArray(params.userId) ? params.userId[0] : params.userId;
-  const routeName = Array.isArray(params.name) ? params.name[0] : params.name;
+  const params = useLocalSearchParams<{
+    userId: string;
+    name?: string;
+  }>();
+
+  const userId = Array.isArray(params.userId)
+    ? params.userId[0]
+    : params.userId;
+
+  const routeName = Array.isArray(params.name)
+    ? params.name[0]
+    : params.name;
 
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [otherName, setOtherName] = useState(routeName || 'Conversation');
+  const [otherName, setOtherName] = useState(
+    routeName || 'Conversation'
+  );
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
   const loadMessages = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const current = await getAuthUser();
       setCurrentUser(current);
@@ -50,12 +111,17 @@ export default function ChatScreen() {
         messages: ChatMessage[];
       }>(`/api/messages/${userId}`);
 
-      setOtherName(response.user?.name || routeName || 'Conversation');
+      setOtherName(
+        response.user?.name || routeName || 'Conversation'
+      );
+
       setMessages(response.messages || []);
     } catch (error) {
       Alert.alert(
         'Could not load conversation',
-        error instanceof Error ? error.message : 'Please try again.'
+        error instanceof Error
+          ? error.message
+          : 'Please try again.'
       );
     } finally {
       setLoading(false);
@@ -70,20 +136,27 @@ export default function ChatScreen() {
 
   const sendMessage = async () => {
     const text = draft.trim();
-    if (!text || !userId || sending) return;
+
+    if (!text || !userId || sending) {
+      return;
+    }
 
     setSending(true);
+
     try {
       await apiRequest(`/api/messages/${userId}`, {
         method: 'POST',
         body: { text },
       });
+
       setDraft('');
       await loadMessages();
     } catch (error) {
       Alert.alert(
         'Message not sent',
-        error instanceof Error ? error.message : 'Please try again.'
+        error instanceof Error
+          ? error.message
+          : 'Please try again.'
       );
     } finally {
       setSending(false);
@@ -94,6 +167,7 @@ export default function ChatScreen() {
     return (
       <SafeAreaView style={styles.center}>
         <ActivityIndicator size="large" color="#14213D" />
+        <Text style={styles.loadingText}>Loading conversation...</Text>
       </SafeAreaView>
     );
   }
@@ -105,59 +179,124 @@ export default function ChatScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
       >
+        {/* Chat header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Pressable
+            onPress={() => router.back()}
+            style={styles.backButton}
+            hitSlop={8}
+          >
             <Text style={styles.backText}>‹ Back</Text>
           </Pressable>
+
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {otherName.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+
           <View style={styles.headerText}>
             <Text style={styles.title}>{otherName}</Text>
-            <Text style={styles.subtitle}>SAI private conversation</Text>
+            <Text style={styles.subtitle}>
+              SAI private conversation
+            </Text>
           </View>
-          <Pressable onPress={loadMessages} style={styles.refresh}>
+
+          <Pressable
+            onPress={loadMessages}
+            style={styles.refresh}
+            hitSlop={8}
+          >
             <Text style={styles.refreshText}>↻</Text>
           </Pressable>
         </View>
 
+        {/* Messages */}
         <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.messages}
-          ref={(ref) => {
-            // The list is intentionally kept simple; refresh reloads the latest 200 messages.
-          }}
+          keyboardShouldPersistTaps="handled"
         >
           {messages.length === 0 ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>Start the conversation</Text>
+              <Text style={styles.emptyIcon}>💬</Text>
+              <Text style={styles.emptyTitle}>
+                Start the conversation
+              </Text>
               <Text style={styles.emptyText}>
                 Send a message to begin chatting.
               </Text>
             </View>
-          ) : messages.map((message) => {
-            const mine = getId(message.sender) === currentUser?._id;
-            return (
-              <View
-                key={message._id}
-                style={[
-                  styles.messageRow,
-                  mine ? styles.myRow : styles.theirRow,
-                ]}
-              >
-                <View style={[styles.bubble, mine ? styles.myBubble : styles.theirBubble]}>
-                  <Text style={[styles.messageText, mine && styles.myMessageText]}>
-                    {message.text}
+          ) : (
+            messages.map((message) => {
+              const receiverId = getId(message.receiver);
+
+const mine =
+  String(receiverId) === String(userId);
+
+              const senderName = mine
+                ? 'You'
+                : getPersonName(message.sender, otherName);
+
+              const senderRole = mine
+                ? ''
+                : getPersonRole(message.sender);
+
+              return (
+                <View
+                  key={message._id}
+                  style={[
+                    styles.messageRow,
+                    mine ? styles.myRow : styles.theirRow,
+                  ]}
+                >
+                  {/* Sender identity */}
+                  <Text
+                    style={[
+                      styles.senderLabel,
+                      mine
+                        ? styles.mySenderLabel
+                        : styles.theirSenderLabel,
+                    ]}
+                  >
+                    {senderName}
+                    {senderRole ? ` · ${senderRole}` : ''}
                   </Text>
-                  <Text style={[styles.time, mine && styles.myTime]}>
-                    {new Date(message.createdAt).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </Text>
+
+                  {/* Message bubble */}
+                  <View
+                    style={[
+                      styles.bubble,
+                      mine
+                        ? styles.myBubble
+                        : styles.theirBubble,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.messageText,
+                        mine && styles.myMessageText,
+                      ]}
+                    >
+                      {message.text}
+                    </Text>
+
+                    <Text
+                      style={[
+                        styles.time,
+                        mine && styles.myTime,
+                      ]}
+                    >
+                      {formatTime(message.createdAt)}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            );
-          })}
+              );
+            })
+          )}
         </ScrollView>
 
+        {/* Message input */}
         <View style={styles.composer}>
           <TextInput
             value={draft}
@@ -168,10 +307,14 @@ export default function ChatScreen() {
             multiline
             maxLength={2000}
           />
+
           <Pressable
             onPress={sendMessage}
             disabled={!draft.trim() || sending}
-            style={[styles.sendButton, (!draft.trim() || sending) && styles.sendDisabled]}
+            style={[
+              styles.sendButton,
+              (!draft.trim() || sending) && styles.sendDisabled,
+            ]}
           >
             {sending ? (
               <ActivityIndicator color="#fff" />
@@ -186,48 +329,199 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F5F7FA' },
-  flex: { flex: 1 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  safe: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
+
+  flex: {
+    flex: 1,
+  },
+
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F7FA',
+  },
+
+  loadingText: {
+    color: '#64748B',
+    fontSize: 13,
+    marginTop: 12,
+  },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
+    gap: 10,
   },
-  backButton: { paddingVertical: 8, paddingRight: 10 },
-  backText: { color: '#2563EB', fontWeight: '800', fontSize: 15 },
-  headerText: { flex: 1 },
-  title: { color: '#14213D', fontSize: 17, fontWeight: '900' },
-  subtitle: { color: '#64748B', fontSize: 11, marginTop: 3 },
-  refresh: { padding: 8 },
-  refreshText: { color: '#2563EB', fontSize: 24, fontWeight: '700' },
-  messages: { padding: 16, flexGrow: 1, justifyContent: 'flex-end' },
-  empty: { alignItems: 'center', padding: 28, marginTop: 80 },
-  emptyTitle: { color: '#14213D', fontWeight: '900', fontSize: 17 },
-  emptyText: { color: '#64748B', marginTop: 6, fontSize: 13 },
-  messageRow: { width: '100%', marginVertical: 5 },
-  myRow: { alignItems: 'flex-end' },
-  theirRow: { alignItems: 'flex-start' },
-  bubble: { maxWidth: '84%', borderRadius: 16, paddingHorizontal: 13, paddingVertical: 9 },
-  myBubble: { backgroundColor: '#14213D', borderBottomRightRadius: 4 },
-  theirBubble: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#E2E8F0', borderBottomLeftRadius: 4 },
-  messageText: { color: '#1E293B', fontSize: 14, lineHeight: 20 },
-  myMessageText: { color: '#fff' },
-  time: { color: '#94A3B8', fontSize: 10, marginTop: 5, textAlign: 'right' },
-  myTime: { color: '#CBD5E1' },
+
+  backButton: {
+    paddingVertical: 8,
+    paddingRight: 2,
+  },
+
+  backText: {
+    color: '#2563EB',
+    fontWeight: '800',
+    fontSize: 15,
+  },
+
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E8EEF8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  avatarText: {
+    color: '#14213D',
+    fontSize: 18,
+    fontWeight: '900',
+  },
+
+  headerText: {
+    flex: 1,
+  },
+
+  title: {
+    color: '#14213D',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+
+  subtitle: {
+    color: '#64748B',
+    fontSize: 11,
+    marginTop: 3,
+  },
+
+  refresh: {
+    padding: 7,
+  },
+
+  refreshText: {
+    color: '#2563EB',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+
+  messages: {
+    paddingHorizontal: 15,
+    paddingVertical: 18,
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+  },
+
+  empty: {
+    alignItems: 'center',
+    padding: 28,
+    marginTop: 80,
+  },
+
+  emptyIcon: {
+    fontSize: 38,
+    marginBottom: 12,
+  },
+
+  emptyTitle: {
+    color: '#14213D',
+    fontWeight: '900',
+    fontSize: 17,
+  },
+
+  emptyText: {
+    color: '#64748B',
+    marginTop: 6,
+    fontSize: 13,
+  },
+
+  messageRow: {
+    width: '100%',
+    marginVertical: 7,
+  },
+
+  myRow: {
+    alignItems: 'flex-end',
+  },
+
+  theirRow: {
+    alignItems: 'flex-start',
+  },
+
+  senderLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    marginBottom: 5,
+    paddingHorizontal: 4,
+  },
+
+  mySenderLabel: {
+    color: '#2563EB',
+  },
+
+  theirSenderLabel: {
+    color: '#64748B',
+  },
+
+  bubble: {
+    maxWidth: '84%',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+
+  myBubble: {
+    backgroundColor: '#2563EB',
+    borderBottomRightRadius: 4,
+  },
+
+  theirBubble: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderBottomLeftRadius: 4,
+  },
+
+  messageText: {
+    color: '#1E293B',
+    fontSize: 14,
+    lineHeight: 21,
+  },
+
+  myMessageText: {
+    color: '#FFFFFF',
+  },
+
+  time: {
+    color: '#94A3B8',
+    fontSize: 10,
+    marginTop: 6,
+    textAlign: 'right',
+  },
+
+  myTime: {
+    color: '#DBEAFE',
+  },
+
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: 12,
     gap: 9,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0',
   },
+
   input: {
     flex: 1,
     maxHeight: 110,
@@ -239,6 +533,7 @@ const styles = StyleSheet.create({
     color: '#14213D',
     fontSize: 14,
   },
+
   sendButton: {
     minWidth: 62,
     height: 44,
@@ -248,6 +543,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 12,
   },
-  sendDisabled: { opacity: 0.45 },
-  sendText: { color: '#fff', fontWeight: '800' },
+
+  sendDisabled: {
+    opacity: 0.45,
+  },
+
+  sendText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
 });
