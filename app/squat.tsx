@@ -298,7 +298,7 @@ export default function SquatScreen() {
             <PoseCameraView
               style={styles.camera}
               isActive={phase !== 'completed'}
-              cameraFacing="back"
+              cameraFacing="front"
               frameLimit={15}
               callbackFps={10}
               skeleton={{
